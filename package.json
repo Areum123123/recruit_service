@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^5.17.0",
+    "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "prisma": "^5.17.0"
@@ -15,7 +16,7 @@
     "prettier": "3.3.3"
   },
   "scripts": {
-    "dev" : "nodemon src/app.js",
-   "format": "prettier --write src/*.js src/**/*.js"
+    "dev": "nodemon src/app.js",
+    "format": "prettier --write src/*.js src/**/*.js"
   }
 }
