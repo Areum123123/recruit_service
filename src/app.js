@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/error-handler.middleware.js';
 import { PORT_NUMBER } from './constant/env.constant.js';
+import apiRouter from './routers/index.js';
 
 const app = express();
 const PORT = PORT_NUMBER;
@@ -14,7 +15,7 @@ app.get('/', (req, res) => {
   return res.status(200).send('서버가 실행중');
 });
 
-// app.use('/api', [UsersRouter, ResumesRouter]);
+app.use('/api', [apiRouter]);
 
 app.use(errorHandler); //error미들웨어
 
