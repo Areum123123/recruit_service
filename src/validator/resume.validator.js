@@ -3,7 +3,6 @@ import Joi from 'joi';
 const resumeSchema = Joi.object({
   title: Joi.string().required().messages({
     'any.required': '제목을 입력해 주세요',
-    'string.email': '이메일 형식이 올바르지 않습니다.',
     'string.empty': '제목을 입력해 주세요',
   }),
   introduction: Joi.string().required().min(150).messages({
