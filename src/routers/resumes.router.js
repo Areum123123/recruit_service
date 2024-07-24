@@ -155,4 +155,38 @@ resumeRouter.patch(
   },
 );
 
+//이력서 삭제 API(accesstoken 인증필요)
+resumeRouter.delete('/:resumeId', authMiddleware, async (req, res, next) => {
+  const { userId } = req.user;
+  const { resumeId } = req.params;
+  try {
+    const resume = await prisma.resume.findFirst({
+      where: {
+        UserId: +userId,
+        resumeId: +resumeId,
+      },
+    });
+
+    if (!resume) {
+      return res
+        .status(404)
+        .json({ status: 404, message: '이력서가 존재하지 않습니다.' });
+    }
+
+    const deleteResume = await prisma.resume.delete({
+      where: {
+        UserId: +userId,
+        resumeId: +resumeId,
+      },
+    });
+
+    return res.status(200).json({
+      status: 200,
+      message: `이력서 ID:${resumeId} 삭제 되었습니다.`,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default resumeRouter;
