@@ -34,19 +34,31 @@ resumeRouter.post(
 
 //이력서 목록 조회 API (accessToken인증 필요)
 resumeRouter.get('/', authMiddleware, async (req, res, next) => {
-  const { userId } = req.user;
   // Query Parameters**(**`req.query`**)으로 **정렬** 조건을 받습니다.
   //  생성일시 기준 정렬은 `과거순(ASC),` `최신순(DESC)`으로 전달 받습니다. 값이 없는 경우 `최신순(DESC)` 정렬을 기본으로 합니다. 대소문자 구분 없이 동작해야 합니다.
   //const { sort = 'DESC' } = req.query;  /api/resumes?sort=DESC
-  const { sort } = req.query;
+  const { userId, role } = req.user;
+  const { sort, status } = req.query;
   const sortOrder = sort
     ? sort.toUpperCase() === 'ASC'
       ? 'asc'
       : 'desc'
     : 'desc';
 
+  const whereObject = {};
+  //지원 상태 별 필터링 조건을 받습니다. 값이 없는 경우 모든 상태의 이력서를 조회합니다.
+  //지원상태 apply 끼리, pass끼리, status가 따로 없으면 모든 상태이력서 조회
+  if (status) {
+    whereObject.applyStatus = status.toUpperCase();
+  }
+
+  //역할이 RECRUITER 인 경우 모든 사용자의 이력서를 조회할 수 있습니다.
+  if (role !== 'RECRUITER') {
+    whereObject.UserId = +userId;
+  }
+
   const resumes = await prisma.resume.findMany({
-    where: { UserId: +userId },
+    where: whereObject,
     orderBy: {
       createdAt: sortOrder,
     },
@@ -66,6 +78,7 @@ resumeRouter.get('/', authMiddleware, async (req, res, next) => {
     createdAt: resume.createdAt,
     updatedAt: resume.updatedAt,
   }));
+
   if (!resumes) {
     return res.status(200).json({ data: [] });
   }
@@ -78,12 +91,18 @@ resumeRouter.get('/', authMiddleware, async (req, res, next) => {
 resumeRouter.get('/:resumeId', authMiddleware, async (req, res, next) => {
   //사용자 정보는 인증 Middleware(`req.user`)를 통해서 전달 받습니다.
   //이력서 ID를 Path Parameters(`req.params`)로 전달 받습니다.
-  const { userId } = req.user;
+  const { userId, role } = req.user;
   const { resumeId } = req.params;
+
+  const whereObject = { resumeId: +resumeId };
+  //(추가구현)역할이 RECRUITER 인 경우 이력서 작성 사용자와 일치하지 않아도 이력서를 조회할 수 있습니다.
+  if (role !== 'RECRUITER') {
+    whereObject.UserId = +userId;
+  }
 
   try {
     const resume = await prisma.resume.findFirst({
-      where: { resumeId: +resumeId, UserId: +userId },
+      where: whereObject,
       include: {
         user: {
           select: { name: true },
