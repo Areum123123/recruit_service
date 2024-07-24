@@ -79,10 +79,17 @@ authRouter.post('/login', loginValidator, async (req, res, next) => {
     }
 
     // AccessToken(Payload**에 **`사용자 ID`**를 포함하고, **유효기한**이 **`12시간`)**을 생성합니다.
-    const accessToken = jwt.sign({ userId: user.id }, ACCESS_TOKEN_SECRET_KEY, {
-      expiresIn: '12h',
-    });
-    // 반환 :AccessToken
+    const accessToken = jwt.sign(
+      { userId: user.userId },
+      ACCESS_TOKEN_SECRET_KEY,
+      {
+        expiresIn: '12h',
+      },
+    );
+
+    res.header('accessToken', accessToken);
+    // res.header('refreshToken', refreshToken);
+    // AccessToken 반환
     return res.status(200).json({
       status: 200,
       accessToken,
