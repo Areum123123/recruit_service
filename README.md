@@ -1,3 +1,8 @@
+# API명세서 & ERD
+
+[링크 텍스트](https://wistful-manager-71d.notion.site/API-ERD-4fa18f0290cd428bb349946f4e076e5e?pvs=4)
+
+
 # 나만의 채용서비스 백엔드 서버
 
 - [✔︎] API 명세서 및 ERD 작성
