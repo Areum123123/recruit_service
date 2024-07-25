@@ -263,4 +263,49 @@ resumeRouter.patch(
   },
 );
 
+//이력서 로그 목록 조회 API(accessToken 인증, 역할인가 필요)
+resumeRouter.get(
+  '/:resumeId/logs',
+  authMiddleware,
+  requireRoles(['RECRUITER']),
+  async (req, res, next) => {
+    const { resumeId } = req.params;
+    try {
+      const resumeLog = await prisma.resumeLog.findMany({
+        where: { ResumeId: +resumeId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          resumeLogId: true,
+          recruiter: {
+            select: {
+              name: true,
+            },
+          },
+          ResumeId: true,
+          previousStatus: true,
+          newStatus: true,
+          reason: true,
+          createdAt: true,
+        },
+      });
+      if (!resumeLog) {
+        return res.status(200).json({ data: [] });
+      }
+
+      // 반환 정보 구성 : 검색결과가 다수일때 map으로 돌리기
+      const logs = resumeLog.map((log) => ({
+        resumeLogId: log.resumeLogId,
+        recruiterName: log.recruiter.name,
+        resumeId: log.ResumeId,
+        previousStatus: log.previousStatus,
+        newStatus: log.newStatus,
+        reason: log.reason,
+        createdAt: log.createdAt,
+      }));
+      return res.status(200).json({ data: logs });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 export default resumeRouter;
