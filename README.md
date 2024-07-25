@@ -13,4 +13,4 @@
 
 - [✔︎] RefreshToken 활용( 로그인API에 기능추가, RefreshToken 인증 Middleware, 토큰 재발급 API, 로그아웃 API)
 - [✔︎] 역할에 따른 실행 결과 분기 : 채용담당자가 등록된 모든 이력서 조회(이력서 목록조회 API추가구현), 특정사용자 조회(이력서 상세 조회 API 추가 구현)
-- [ ] Transaction 활용
+- [✔︎] Transaction 활용: 역할인가 미들웨어, 이력서 지원 상태변경 API, 이력서 로그 목록조회 API
