@@ -264,31 +264,3 @@ resumeRouter.patch(
 );
 
 export default resumeRouter;
-
-//이력서 상태 변경 유효성 검증 기존코드(joi 사용전)
-// // 유효성 검증
-// if (!applyStatus) {
-//   return res
-//     .status(400)
-//     .json({ message: '변경하고자 하는 지원 상태를 입력해 주세요.' });
-// }
-
-// if (!reason) {
-//   return res
-//     .status(400)
-//     .json({ message: '지원 상태 변경 사유를 입력해 주세요.' });
-// }
-
-// const validStatuses = [
-//   'APPLY',
-//   'DROP',
-//   'PASS',
-//   'INTERVIEW1',
-//   'INTERVIEW2',
-//   'FINAL_PASS',
-// ];
-// if (!validStatuses.includes(applyStatus)) {
-//   return res
-//     .status(400)
-//     .json({ message: '유효하지 않은 지원 상태입니다.' });
-// }
