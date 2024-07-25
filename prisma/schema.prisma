@@ -24,6 +24,7 @@ model User {
 
  refreshToken RefreshToken?
  resumes  Resume[]
+ resumeLogs   ResumeLog[] @relation("RecruiterLogs")
 
   @@map("User")
 }
@@ -44,7 +45,8 @@ model Resume {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
- user User @relation(fields: [UserId], references: [userId], onDelete: Cascade )
+ resumeLogs       ResumeLog[]
+ user             User @relation(fields: [UserId], references: [userId], onDelete: Cascade )
 
   @@map("Resume")
 }
@@ -73,3 +75,16 @@ updatedAt DateTime @updatedAt
 
   @@map("RefreshToken")
   }
+
+  model ResumeLog {
+  resumeLogId       Int       @id @default(autoincrement())
+  UserId            Int
+  ResumeId          Int
+  previousStatus    ApplyStatus
+  newStatus         ApplyStatus
+  reason            String
+  createdAt         DateTime  @default(now())
+
+  recruiter         User        @relation("RecruiterLogs", fields: [UserId], references: [userId])
+  resume            Resume      @relation(fields: [ResumeId], references: [resumeId])
+}

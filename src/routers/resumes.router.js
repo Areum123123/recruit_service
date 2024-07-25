@@ -3,6 +3,8 @@ import authMiddleware from '../middlewares/auth.middleware.js';
 import { resumeValidator } from '../validator/resume.validator.js';
 import { prisma } from '../utils/prisma.util.js';
 import { updateResumeValidator } from '../validator/update-resume.validator.js';
+import { requireRoles } from '../middlewares/require-role.middleware.js';
+import { StatusValidator } from '../validator/resume-status.validator.js';
 
 const resumeRouter = express();
 
@@ -33,6 +35,7 @@ resumeRouter.post(
 );
 
 //이력서 목록 조회 API (accessToken인증 필요)
+
 resumeRouter.get('/', authMiddleware, async (req, res, next) => {
   // Query Parameters**(**`req.query`**)으로 **정렬** 조건을 받습니다.
   //  생성일시 기준 정렬은 `과거순(ASC),` `최신순(DESC)`으로 전달 받습니다. 값이 없는 경우 `최신순(DESC)` 정렬을 기본으로 합니다. 대소문자 구분 없이 동작해야 합니다.
@@ -134,7 +137,8 @@ resumeRouter.get('/:resumeId', authMiddleware, async (req, res, next) => {
   }
 });
 
-//이력서 수정 API(accessToken 인증 필요)
+// 이력서 수정 API(accessToken 인증 필요)
+
 resumeRouter.patch(
   '/:resumeId',
   updateResumeValidator,
@@ -175,6 +179,7 @@ resumeRouter.patch(
 );
 
 //이력서 삭제 API(accesstoken 인증필요)
+
 resumeRouter.delete('/:resumeId', authMiddleware, async (req, res, next) => {
   const { userId } = req.user;
   const { resumeId } = req.params;
@@ -208,4 +213,82 @@ resumeRouter.delete('/:resumeId', authMiddleware, async (req, res, next) => {
   }
 });
 
+//이력서 지원 상태 변경 API(accesstoken인증, 역할인가 필요)
+resumeRouter.patch(
+  '/:resumeId/status',
+  authMiddleware,
+  requireRoles(['RECRUITER']),
+  StatusValidator,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user;
+      const { resumeId } = req.params;
+      const { applyStatus, reason } = req.body;
+
+      // 이력서 정보 확인
+      const resume = await prisma.resume.findUnique({
+        where: { resumeId: +resumeId },
+      });
+
+      if (!resume) {
+        return res.status(404).json({ message: '이력서가 존재하지 않습니다.' });
+      }
+
+      // 이력서 상태 변경 로직
+      const resumeLog = await prisma.$transaction(async (prisma) => {
+        // 이력서 applyStatus 수정
+        await prisma.resume.update({
+          where: { resumeId: +resumeId },
+          data: { applyStatus },
+        });
+
+        // 로그 생성
+        const createResumeLog = await prisma.resumeLog.create({
+          data: {
+            UserId: userId,
+            ResumeId: resume.resumeId,
+            previousStatus: resume.applyStatus,
+            newStatus: applyStatus,
+            reason,
+          },
+        });
+
+        return createResumeLog;
+      });
+
+      return res.status(200).json(resumeLog);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 export default resumeRouter;
+
+//이력서 상태 변경 유효성 검증 기존코드(joi 사용전)
+// // 유효성 검증
+// if (!applyStatus) {
+//   return res
+//     .status(400)
+//     .json({ message: '변경하고자 하는 지원 상태를 입력해 주세요.' });
+// }
+
+// if (!reason) {
+//   return res
+//     .status(400)
+//     .json({ message: '지원 상태 변경 사유를 입력해 주세요.' });
+// }
+
+// const validStatuses = [
+//   'APPLY',
+//   'DROP',
+//   'PASS',
+//   'INTERVIEW1',
+//   'INTERVIEW2',
+//   'FINAL_PASS',
+// ];
+// if (!validStatuses.includes(applyStatus)) {
+//   return res
+//     .status(400)
+//     .json({ message: '유효하지 않은 지원 상태입니다.' });
+// }
